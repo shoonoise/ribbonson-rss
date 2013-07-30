@@ -1,11 +1,15 @@
+function format_article(result) {
+        return art = '<div class="panel">' + '<div class="panel-heading">' + result['title'] + '</br><small>' + result['published']  + '</div>'+
+    '</small><br>' + '<p>' + result['summary'] + '</p>' + '</div>';
+}
+
 function get_article(feed_id, number) {
     $.ajax({
         type:"GET",
         url:feed_id + '/' + number,
         success:function (result) {
             $('.article').html(function(){
-                return art = '<h2>' + result['title'] + '</h2>' + '<small>' + result['published'] +
-                '</small><br>' + '<p>' + result['summary'] + '</p>';
+                return art = format_article(result);
             });
         }
     });
