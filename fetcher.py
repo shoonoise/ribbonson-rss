@@ -2,6 +2,8 @@
 
 import feedparser
 import logging
+import gevent
+from gevent import monkey
 from time import mktime
 from datetime import datetime
 from feeds import connection
@@ -59,7 +61,12 @@ class FeedHandler(object):
 
 
 if __name__ == "__main__":
-    
+
+    monkey.patch_all()
+
+    logging.basicConfig(filename="fetcher.log", level=logging.INFO)
+    logging.info("\n" + "*" * 5 + " New run " + "*" * 5)
+
     URLS = ['http://feeds.feedburner.com/d0od',
             'http://habrahabr.ru/rss/hubs/',
             'http://dribbble.com/shots/popular.rss',
@@ -68,7 +75,9 @@ if __name__ == "__main__":
             'http://feeds.feedburner.com/eaxme',
             'http://feeds.feedburner.com/futurecolors'
             ]
-    
-    for url in URLS:
+
+    def create_job(url):
         f = FeedHandler(url)
         f.process()
+
+    gevent.joinall([gevent.spawn(create_job, url) for url in URLS])
