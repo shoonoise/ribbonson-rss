@@ -2,33 +2,43 @@
 <html>
 <head>
     <title>Ribbonson</title>
-    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='bootstrap.css')}}">
-<!--     <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='flat-ui.css')}}"> -->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='bootstrap/css/bootstrap.css')}}">
     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script src="{{url_for('static',filename='load_article.js')}}"></script>
+    <script src="{{url_for('static',filename='bootstrap/js/bootstrap.js')}}"></script>
 </head>
 <body>
+
 <div class="container-fluid">
-    <h1 class="logo">
-        Mr. Ribbonson
-        <small>Keep Calm And Read RSS</small>
-    </h1>
-
-    <div class="row-fluid">
-        <div class="span3">
-                    {% for item in feeds %}
-                        <li class="feed" data-id="{{ item.id }}" data-count="{{ item.count }}">
-                            <a> {{ item.title }} </a><span class="badge badge-success pull-right"> {{ item.count }}</span>
-                        </li>
-                    {% endfor %}
-        </div>
-
-        <div class="span9" style="overflow: auto">
-            <p class="palette-paragraph">
-                <div class="article"></div>
-            </p>
-        </div>
+    <div class="navbar">
+        <h1 class="logo">
+            Mr. Ribbonson
+            <small>Keep Calm And Read RSS</small>
+        </h1>
     </div>
+
+    <div class="row">
+
+        <div class="col-lg-3">
+            <div class="panel affix">
+                <div class="panel-heading">Feeds</div>
+                    <ul class="list-group list-group-flush">
+                        {% for item in feeds %}
+                            <a href="#" class="feed list-group-item" data-id="{{ item.id }}" 
+                            data-count="{{ item.count }}"> {{ item.title }} <span class="badge"> {{ item.count }}</span>
+                            </a>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+    <div class="col-lg-8">
+            <div class="article"></div>
+    </div>
+        </div>
+        
+
 </div>
+
+
 </body>
 </html>
