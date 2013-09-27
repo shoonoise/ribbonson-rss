@@ -3,6 +3,7 @@
 import feedparser
 import logging
 import gevent
+import opml
 from gevent import monkey
 from time import mktime
 from datetime import datetime
@@ -13,10 +14,21 @@ class FeedHandler(object):
     """This class response for adding and updating feeds"""
 
     def __init__(self, url):
+
         parsed_feed = feedparser.parse(url)
+
+        if 'bozo_exception' in parsed_feed:
+            logging.info("Failed to parse %s. %s" % (url, parsed_feed['bozo_exception']))
+            raise gevent.GreenletExit
+
+        try:
+            self.items = self.__extract_items(parsed_feed)
+        except AttributeError as e:
+            logging.info("Failed to parse %s. %s" % (url, e))
+            raise gevent.GreenletExit
+
         self.url = unicode(url)
         self.title = unicode(parsed_feed.feed.title)
-        self.items = self.__extract_items(parsed_feed)
         logging.info("Processed %s(%s)", self.title, url)
 
     @staticmethod
@@ -25,7 +37,7 @@ class FeedHandler(object):
         return [{'summary': article.summary,
                  'title': article.title,
                  'link': article.link,
-                 'published': datetime.fromtimestamp(mktime(article.published_parsed)),
+                 'published': datetime.fromtimestamp(mktime(article.updated_parsed)),
                  'viewed': False}
                 for article in parsed_feed.entries]
 
@@ -64,20 +76,19 @@ if __name__ == "__main__":
 
     monkey.patch_all()
 
-    logging.basicConfig(filename="fetcher.log", level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s::%(levelname)s::%(message)s', filename="fetcher.log", level=logging.INFO)
     logging.info("\n" + "*" * 5 + " New run " + "*" * 5)
 
-    URLS = ['http://feeds.feedburner.com/d0od',
-            'http://habrahabr.ru/rss/hubs/',
-            'http://dribbble.com/shots/popular.rss',
-            'http://www.alexconrad.org//feeds/posts/default',
-            'http://www.ixbt.com/export/articles.rss',
-            'http://feeds.feedburner.com/eaxme',
-            'http://feeds.feedburner.com/futurecolors'
-            ]
+    URLS = set()
 
     def create_job(url):
         f = FeedHandler(url)
         f.process()
+
+    opml_file = open("feedly.opml")
+    outline = opml.from_string(opml_file.read())
+    for line in outline:
+        for item in line:
+            URLS.add(item.xmlUrl)
 
     gevent.joinall([gevent.spawn(create_job, url) for url in URLS])
